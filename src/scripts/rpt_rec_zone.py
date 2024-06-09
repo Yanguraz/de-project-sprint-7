@@ -3,6 +3,7 @@ import logging
 import pyspark.sql.functions as F 
 from pyspark.sql.window import Window
 from pyspark.sql import SparkSession
+from pyspark.sql.utils import AnalysisException, IllegalArgumentException
 
 # Вычисление расстояния между двумя точками по их широте и долготе
 def dist_count(lat1, lat2, lon1, lon2):
@@ -100,8 +101,10 @@ def recommendation_zone_report() -> None:
         
         logging.info(f"Отчет был успешно записан в {dir_name_to}")
         
+    except (ValueError, FileNotFoundError, AnalysisException, IllegalArgumentException) as e:
+        logging.error(f"Произошла ошибка: {e}")
     except Exception as e:
-        logging.exception(f"Ошибка: {e}")
+        logging.exception("Произошла необработанная ошибка!")
     finally:
         spark.stop()
 

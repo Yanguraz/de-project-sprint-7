@@ -4,6 +4,7 @@ import pyspark.sql.functions as F
 import datetime as dt
 from pyspark.sql.window import Window
 from pyspark.sql import SparkSession
+from pyspark.sql.utils import AnalysisException, IllegalArgumentException
 
 # Создание отчета по зонам пользователей
 def user_zone_report() -> None:
@@ -108,8 +109,10 @@ def user_zone_report() -> None:
         
         logging.info(f"Отчет был успешно записан в {dir_name_to}")
         
+    except (ValueError, FileNotFoundError, AnalysisException, IllegalArgumentException) as e:
+        logging.error(f"Произошла ошибка: {e}")
     except Exception as e:
-        logging.exception(f"Ошибка: {e}")
+        logging.exception("Произошла необработанная ошибка!")
     finally:
         spark.stop()
 

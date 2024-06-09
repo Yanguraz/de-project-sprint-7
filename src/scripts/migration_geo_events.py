@@ -2,6 +2,10 @@ import sys
 import logging
 import pyspark.sql.functions as F 
 from pyspark.sql import SparkSession
+from pyspark.sql.utils import AnalysisException, IllegalArgumentException
+
+# Константа радиуса Земли в километрах
+EARTH_RADIUS_KM = 6371
 
 # Преобразование строки в число с плавающей точкой
 def to_float(n) -> float:
@@ -14,7 +18,7 @@ def calculate_distance(lat1, lat2, lon1, lon2):
     part3 = F.cos(lat2)
     part4 = F.pow(F.sin((lon2 - lon1) / F.lit(2)), 2)
     
-    distance = F.lit(2 * 6371) * F.asin(F.sqrt(part1 + (part2 * part3 * part4)))
+    distance = F.lit(2 * EARTH_RADIUS_KM) * F.asin(F.sqrt(part1 + (part2 * part3 * part4)))
     
     return distance
 
@@ -87,8 +91,12 @@ def update_distances() -> None:
         
         logging.info(f"{target_dir}/date={date} был записан")
         
+    except (ValueError, FileNotFoundError, AnalysisException, IllegalArgumentException) as e:
+        logging.error(f"Произошла ошибка: {e}")
     except Exception as e:
-        logging.exception(f"Ошибка: {e}")
+        logging.exception("Произошла необработанная ошибка!")
+    finally:
+        spark.stop()
 
 if __name__ == '__main__':
     update_distances()
